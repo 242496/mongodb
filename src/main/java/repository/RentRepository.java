@@ -3,12 +3,13 @@ package repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import model.Client;
-import model.Machine;
-import model.Rent;
+import model.ClientMgd;
+import model.MachineMgd;
+import model.RentMgd;
+import model.UniqueId;
 import repository.mongo.RentMongoRepository;
 
-public class RentRepository implements Repository<Rent> {
+public class RentRepository implements Repository<RentMgd> {
 
     private RentMongoRepository rentMongoRepository;
 
@@ -17,32 +18,32 @@ public class RentRepository implements Repository<Rent> {
         this.rentMongoRepository = rentMongoRepository;
     }
 
-    public Rent findByMachine(Machine machine) {
+    public RentMgd findByMachine(MachineMgd machine) {
         return rentMongoRepository.findByMachine(machine);
     }
 
-    public Rent findByClient(Client client) {
+    public RentMgd findByClient(ClientMgd client) {
         return rentMongoRepository.findByClient(client);
     }
 
     @Override
-    public Rent add(Rent entity) {
+    public RentMgd add(RentMgd entity) {
         rentMongoRepository.add(entity);
         return entity;
     }
 
     @Override
-    public Rent getById(UUID id) {
+    public RentMgd getById(UniqueId id) {
         return rentMongoRepository.findById(id);
     }
 
     @Override
-    public void remove(UUID id) {
+    public void remove(UniqueId id) {
         rentMongoRepository.remove(id);
     }
 
     @Override
-    public void update(Rent entity) {
+    public void update(RentMgd entity) {
         rentMongoRepository.update(entity);
     }
 
@@ -52,9 +53,9 @@ public class RentRepository implements Repository<Rent> {
     }
 
     @Override
-    public List<Rent> findAll() {
-        List<Rent> rents = new ArrayList<>();
-        List<Rent> found = rentMongoRepository.findAll();
+    public List<RentMgd> findAll() {
+        List<RentMgd> rents = new ArrayList<>();
+        List<RentMgd> found = rentMongoRepository.findAll();
         rents.addAll(found);
         return rents;
     }

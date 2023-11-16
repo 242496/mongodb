@@ -3,10 +3,11 @@ package repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import model.Machine;
+import model.MachineMgd;
+import model.UniqueId;
 import repository.mongo.MachineMongoRepository;
 
-public class MachineRepository implements Repository<Machine> {
+public class MachineRepository implements Repository<MachineMgd> {
     private final MachineMongoRepository machineMongoRepository;
 
     public MachineRepository(MachineMongoRepository machineMongoRepository) {
@@ -14,23 +15,23 @@ public class MachineRepository implements Repository<Machine> {
     }
 
     @Override
-    public Machine add(Machine entity) {
+    public MachineMgd add(MachineMgd entity) {
         machineMongoRepository.add(entity);
         return entity;
     }
 
-    @Override
-    public Machine getById(UUID id) {
+
+    public MachineMgd getById(UniqueId id) {
         return machineMongoRepository.findById(id);
     }
 
     @Override
-    public void remove(UUID id) {
+    public void remove(UniqueId id) {
         machineMongoRepository.remove(id);
     }
 
     @Override
-    public void update(Machine entity) {
+    public void update(MachineMgd entity) {
         machineMongoRepository.update(entity);
     }
 
@@ -40,9 +41,9 @@ public class MachineRepository implements Repository<Machine> {
     }
 
     @Override
-    public List<Machine> findAll() {
-        List<Machine> machines = new ArrayList<>();
-        List<Machine> found = machineMongoRepository.findAll();
+    public List<MachineMgd> findAll() {
+        List<MachineMgd> machines = new ArrayList<>();
+        List<MachineMgd> found = machineMongoRepository.findAll();
         machines.addAll(found);
         return machines;
     }

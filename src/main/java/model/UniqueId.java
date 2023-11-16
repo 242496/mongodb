@@ -20,8 +20,6 @@ public class UniqueId {
     UniqueId(UUID id) {
         this.id = id;
     }
-
-    @JsonIgnore
     public UUID getUUID() {
         return id;
     }

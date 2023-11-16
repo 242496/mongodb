@@ -4,27 +4,42 @@ import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import model.Client;
+import model.ClientMgd;
+import model.RentMgd;
 import org.bson.conversions.Bson;
 
-public class ClientMongoRepository extends AbstractMongoRepository<Client> {
+public class ClientMongoRepository extends AbstractMongoRepository<ClientMgd> {
 
 
     public ClientMongoRepository() {
-        super("clients", Client.class);
+        super("clients", ClientMgd.class);
     }
 
-    public Client findByUsername(String Username) {
-        MongoCollection<Client> collection = mongoDatabase.getCollection(collectionName, Client.class);
+    public ClientMgd findByUsername(String Username) {
+        MongoCollection<ClientMgd> collection = mongoDatabase.getCollection(collectionName, ClientMgd.class);
         Bson filter = Filters.eq("username", Username);
         return collection.find().filter(filter).first();
     }
 
-    public void update(Client client) {
+    public void add(ClientMgd client) {
         ClientSession clientSession = mongoClient.startSession();
         try {
             clientSession.startTransaction();
-            MongoCollection<Client> clientsCollection = mongoDatabase.getCollection(collectionName, Client.class);
+            MongoCollection<ClientMgd> clientsCollection = mongoDatabase.getCollection(collectionName, ClientMgd.class);
+            clientsCollection.insertOne(client);
+            clientSession.commitTransaction();
+        } catch (Exception e) {
+            clientSession.abortTransaction();
+        } finally {
+            clientSession.close();
+        }
+    }
+
+    public void update(ClientMgd client) {
+        ClientSession clientSession = mongoClient.startSession();
+        try {
+            clientSession.startTransaction();
+            MongoCollection<ClientMgd> clientsCollection = mongoDatabase.getCollection(collectionName, ClientMgd.class);
             Bson filter = Filters.eq("_id", client.getEntityId());
 
             Bson setUpdate = Updates.combine(
@@ -43,7 +58,7 @@ public class ClientMongoRepository extends AbstractMongoRepository<Client> {
     }
 
     public void clearDatabase() {
-        MongoCollection<Client> collection = mongoDatabase.getCollection(collectionName, Client.class);
+        MongoCollection<ClientMgd> collection = mongoDatabase.getCollection(collectionName, ClientMgd.class);
         collection.drop();
     }
 }

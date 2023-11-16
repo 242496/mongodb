@@ -4,12 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import managers.ClientManager;
 import managers.MachineManager;
 import managers.RentManager;
-import model.Advanced;
-import model.Client;
-import model.ClientType;
-import model.Intermediate;
-import model.Machine;
-import model.Rent;
+import model.AdvancedMgd;
+import model.ClientMgd;
+import model.ClientTypeMgd;
+import model.IntermediateMgd;
+import model.MachineMgd;
+import model.RentMgd;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -39,27 +39,30 @@ class mainTest {
         rentMongoRepository.clearDatabase();
     }
     @Test
-    void testCRUD() throws Exception {
+    void test() throws Exception {
         // dodaj klienta
-        ClientType intermediate = new Intermediate();
-        Client client = new Client("AronStorm", intermediate);
+        ClientTypeMgd intermediate = new IntermediateMgd();
+        ClientMgd client = new ClientMgd("AronStorm", intermediate);
         clientManager.addClient(client);
         assertEquals(clientMongoRepository.findByUsername("AronStorm"), client);
 
+
         // dodaj maszyne
-        Machine machine = new Machine(4, 8192, 400, Machine.SystemType.DEBIAN);
+        MachineMgd machine = new MachineMgd(4, 8192, 400, MachineMgd.SystemType.DEBIAN);
         machineManager.addMachine(machine);
         assertEquals(machineMongoRepository.findAll().size(), 1);
+
 
         // przed wypożyczeniem
         assertEquals(client.getActiveRents(), 0);
         assertEquals(machine.getIsRented(), false);
 
         // dodaj wypożyczenie
-        Rent rent = rentManager.addRent(client, machine);
+        RentMgd rent = rentManager.addRent(client, machine);
         assertEquals(rentMongoRepository.findAll().size(), 1);
         assertEquals(rentMongoRepository.findByClient(client), rent);
         assertEquals(rentMongoRepository.findByMachine(machine), rent);
+
 
         // zaktualizuj baze danych
         rentMongoRepository.update(rent);
@@ -69,12 +72,13 @@ class mainTest {
         assertEquals(machine.getIsRented(), true);
 
         // dodaj drugie wypożyczenie dla tego samego klienta
-        Machine machine1 = new Machine(3, 512, 250, Machine.SystemType.WINDOWS7);
+        MachineMgd machine1 = new MachineMgd(3, 512, 250, MachineMgd.SystemType.WINDOWS7);
         machineManager.addMachine(machine1);
         assertEquals(machineMongoRepository.findAll().size(), 2);
 
-        rentManager.addRent(client, machine1);
+        RentMgd rentMgd = rentManager.addRent(client, machine1);
         assertEquals(rentMongoRepository.findAll().size(), 2);
+
 
         // zaktualizuj baze danych
         rentMongoRepository.update(rent);
@@ -84,23 +88,32 @@ class mainTest {
         assertEquals(machine1.getIsRented(), true);
 
         // próba wypożyczenia za dużej ilości dostępnych maszyn
-        Machine machine2 = new Machine(2, 256, 200, Machine.SystemType.WINDOWS10);
+        MachineMgd machine2 = new MachineMgd(2, 256, 200, MachineMgd.SystemType.WINDOWS10);
         machineManager.addMachine(machine2);
         assertEquals(machineMongoRepository.findAll().size(), 3);
+
 
         assertThrows(Exception.class, ()->rentManager.addRent(client, machine2));
 
         // próba wypożyczenia maszyny, która jest już wypożyczona
-        ClientType advanced = new Advanced();
-        Client client1 = new Client("Dynamo", advanced);
+        ClientTypeMgd advanced = new AdvancedMgd();
+        ClientMgd client1 = new ClientMgd("Dynamo", advanced);
         clientManager.addClient(client1);
         assertEquals(clientMongoRepository.findByUsername("Dynamo"), client1);
         assertEquals(clientMongoRepository.findAll().size(), 2);
+
 
         assertThrows(Exception.class, ()->rentManager.addRent(client1, machine1));
 
 
         System.out.println(rentMongoRepository.findAll().toString());
+        clientMongoRepository.remove(client.getEntityId());
+        machineMongoRepository.remove(machine.getEntityId());
+        rentMongoRepository.remove(rent.getEntityId());
+        machineMongoRepository.remove(machine1.getEntityId());
+        rentMongoRepository.remove(rentMgd.getEntityId());
+        machineMongoRepository.remove(machine2.getEntityId());
+        clientMongoRepository.remove(client1.getEntityId());
     }
 
 

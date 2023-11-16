@@ -3,10 +3,11 @@ package repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import model.Client;
+import model.ClientMgd;
+import model.UniqueId;
 import repository.mongo.ClientMongoRepository;
 
-public class ClientRepository implements Repository<Client> {
+public class ClientRepository implements Repository<ClientMgd> {
     private final ClientMongoRepository clientMongoRepository;
 
     public ClientRepository(ClientMongoRepository clientMongoRepository) {
@@ -14,30 +15,31 @@ public class ClientRepository implements Repository<Client> {
     }
 
     @Override
-    public Client add(Client entity) {
+    public ClientMgd add(ClientMgd entity) {
         clientMongoRepository.add(entity);
         return entity;
     }
 
     @Override
-    public Client getById(UUID id) {
+    public ClientMgd getById(UniqueId id) {
         return clientMongoRepository.findById(id);
     }
 
 
-    public Client getByUsername(String Username) {
+    public ClientMgd getByUsername(String Username) {
         return clientMongoRepository.findByUsername(Username);
     }
 
     @Override
-    public void remove(UUID id) {
+    public void remove(UniqueId id) {
         clientMongoRepository.remove(id);
     }
 
     @Override
-    public void update(Client entity) {
+    public void update(ClientMgd entity) {
         clientMongoRepository.update(entity);
     }
+
 
     @Override
     public long size() {
@@ -45,9 +47,9 @@ public class ClientRepository implements Repository<Client> {
     }
 
     @Override
-    public List<Client> findAll() {
-        List<Client> clients = new ArrayList<>();
-        List<Client> found = clientMongoRepository.findAll();
+    public List<ClientMgd> findAll() {
+        List<ClientMgd> clients = new ArrayList<>();
+        List<ClientMgd> found = clientMongoRepository.findAll();
         clients.addAll(found);
         return clients;
     }

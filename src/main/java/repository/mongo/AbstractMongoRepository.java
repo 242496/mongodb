@@ -8,11 +8,12 @@ import com.mongodb.client.model.Filters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import model.Admin;
-import model.Advanced;
-import model.Basic;
-import model.ClientType;
-import model.Intermediate;
+import model.AdminMgd;
+import model.AdvancedMgd;
+import model.BasicMgd;
+import model.ClientTypeMgd;
+import model.IntermediateMgd;
+import model.UniqueId;
 import model.UniqueIdCodecProvider;
 import org.bson.UuidRepresentation;
 import org.bson.codecs.configuration.CodecRegistries;
@@ -23,11 +24,11 @@ import org.bson.conversions.Bson;
 
 public abstract class AbstractMongoRepository<T> implements AutoCloseable {
 
-    protected ConnectionString connectionString = new ConnectionString("mongodb://localhost:27017/?replicaSet=replica_set_single&readPreference=primary");
+    protected ConnectionString connectionString = new ConnectionString("mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=replica_set_single");
     protected MongoCredential credential = MongoCredential.createCredential("admin", "admin", "adminpassword".toCharArray());
     protected CodecRegistry pojoCodecRegistry = CodecRegistries.fromProviders(PojoCodecProvider.builder()
             .automatic(true)
-            .register(ClientType.class, Advanced.class, Admin.class, Intermediate.class, Basic.class)
+            .register(ClientTypeMgd.class, AdvancedMgd.class, AdminMgd.class, IntermediateMgd.class, BasicMgd.class)
             .conventions(Conventions.DEFAULT_CONVENTIONS)
             .build());
     protected MongoClient mongoClient;
@@ -56,11 +57,9 @@ public abstract class AbstractMongoRepository<T> implements AutoCloseable {
     }
 
     public void add(T object) {
-        MongoCollection<T> collection = mongoDatabase.getCollection(collectionName, entityClass);
-        collection.insertOne(object);
     }
 
-    public T findById(UUID id) {
+    public T findById(UniqueId id) {
         MongoCollection<T> collection = mongoDatabase.getCollection(collectionName, entityClass);
         Bson filter = Filters.eq("_id", id);
         return collection.find().filter(filter).first();
@@ -74,7 +73,7 @@ public abstract class AbstractMongoRepository<T> implements AutoCloseable {
     public void update(T object) {
     }
 
-    public void remove(UUID id) {
+    public void remove(UniqueId id) {
         MongoCollection<T> collection = mongoDatabase.getCollection(collectionName, entityClass);
         Bson filter = Filters.eq("_id", id);
         collection.deleteOne(filter);
@@ -84,4 +83,5 @@ public abstract class AbstractMongoRepository<T> implements AutoCloseable {
     public void close(){
         mongoClient.close();
     }
+
 }

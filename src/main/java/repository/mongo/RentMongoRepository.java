@@ -4,32 +4,49 @@ import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import model.Client;
-import model.Machine;
-import model.Rent;
+import mapper.RentMapper;
+import model.ClientMgd;
+import model.MachineMgd;
+import model.RentMgd;
 import org.bson.conversions.Bson;
 
-public class RentMongoRepository extends AbstractMongoRepository<Rent> {
+public class RentMongoRepository extends AbstractMongoRepository<RentMgd> {
 
 
     public RentMongoRepository() {
-        super("rents", Rent.class);
+        super("rents", RentMgd.class);
     }
-    public Rent findByClient(Client client) {
-        MongoCollection<Rent> collection = mongoDatabase.getCollection(collectionName, Rent.class);
+    public RentMgd findByClient(ClientMgd client) {
+        MongoCollection<RentMgd> collection = mongoDatabase.getCollection(collectionName, RentMgd.class);
         Bson filter = Filters.eq("client._id", client.getEntityId());
         return collection.find().filter(filter).first();
     }
-    public Rent findByMachine(Machine machine) {
-        MongoCollection<Rent> collection = mongoDatabase.getCollection(collectionName, Rent.class);
+    public RentMgd findByMachine(MachineMgd machine) {
+        MongoCollection<RentMgd> collection = mongoDatabase.getCollection(collectionName, RentMgd.class);
         Bson filter = Filters.eq("machine._id", machine.getEntityId());
         return collection.find().filter(filter).first();
     }
-    public void update(Rent rent) {
+
+    public void add(RentMgd rent) {
         ClientSession clientSession = mongoClient.startSession();
         try {
             clientSession.startTransaction();
-            MongoCollection<Rent> clientsCollection = mongoDatabase.getCollection(collectionName, Rent.class);
+            changeMachineState(clientSession, 1);
+            MongoCollection<RentMgd> clientsCollection = mongoDatabase.getCollection(collectionName, RentMgd.class);
+            clientsCollection.insertOne(rent);
+            clientSession.commitTransaction();
+        } catch (Exception e) {
+            clientSession.abortTransaction();
+        } finally {
+            clientSession.close();
+        }
+    }
+
+    public void update(RentMgd rent) {
+        ClientSession clientSession = mongoClient.startSession();
+        try {
+            clientSession.startTransaction();
+            MongoCollection<RentMgd> clientsCollection = mongoDatabase.getCollection(collectionName, RentMgd.class);
             Bson filter = Filters.eq("_id", rent.getEntityId());
             Bson setUpdate = Updates.combine(
                     Updates.set("client", rent.getClient()),
@@ -42,10 +59,20 @@ public class RentMongoRepository extends AbstractMongoRepository<Rent> {
         } finally {
             clientSession.close();
         }
-
     }
     public void clearDatabase() {
-        MongoCollection<Rent> collection = mongoDatabase.getCollection(collectionName, Rent.class);
+        MongoCollection<RentMgd> collection = mongoDatabase.getCollection(collectionName, RentMgd.class);
         collection.drop();
+    }
+
+    private void changeMachineState(ClientSession clientSession, Integer number) {
+
+        MongoCollection<MachineMgd> collection = this.mongoDatabase.getCollection("machines", MachineMgd.class);
+        Bson filter = Filters.eq("_id", number);
+        Bson update;
+
+        update = Updates.inc("isRented", 1);
+
+        collection.updateOne(clientSession, filter, update);
     }
 }
